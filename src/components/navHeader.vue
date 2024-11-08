@@ -1,7 +1,21 @@
 <template>
     <div class="header-containers">
         <div class="header-left flex-box">
-            <el-icon class="icon" size="20"><Fold /></el-icon>
+            <el-icon class="icon" size="20" @click="store.commit('collapseMenu')"><Fold /></el-icon>
+            <ul class="flex-box">
+                <li 
+                    v-for="(item, index) in selectMenu" 
+                    :key="item.path"
+                    :class="{selected: route.path === item.path}"
+                    class="tab flex-box">
+                    <el-icon size="20"><component :is="item.icon" /></el-icon>
+                    <router-link class="text flex-box" :to="{ path: item.path }">
+                        {{ item.name }}
+                    </router-link>
+                    <el-icon size="20" class="close"><Close /></el-icon>
+                    
+                </li>
+            </ul>
         </div>
         <div class="header-right">
             <el-dropdown>
@@ -26,13 +40,22 @@
 </template>
 
 <script setup>
-    
+import { computed } from 'vue'
+import { useStore } from 'vuex'
+import { useRoute } from 'vue-router'
+// 拿到store的实例
+const store = useStore()
+// 当前的路由对象
+const route = useRoute()
+
+const selectMenu = computed(() => store.state.menu.selectMenu)
 </script>
 
 <style lang="less" scoped>
 .flex-box {
     display: flex;
     align-items: center;
+    height: 100%;
 }
 .header-containers {
     display: flex;
@@ -51,11 +74,43 @@
             background-color: #f5f5f5;
             cursor: pointer;
         }
+        .tab {
+            padding: 0 10px;
+            height: 100%;
+            .text {
+                margin: 0 5px;
+            }
+            .close {
+                visibility: hidden;
+            }
+            &.selected {
+                a {
+                    color: #409eff;
+                }
+                i {
+                    color: #409eff;
+                }
+                background-color: #f5f5f5;
+            }
+        }
+        .tab:hover {
+            background-color: #f5f5f5;
+            .close {
+                visibility: inherit;
+                cursor: pointer;
+                color: #000;
+            }
+        }
     }
     .header-right {
         .user-name {
             margin-left: 10px;
         }
+    }
+    a {
+        height: 100%;
+        color: #333;
+        font-size: 15px;
     }
 }
 </style>
