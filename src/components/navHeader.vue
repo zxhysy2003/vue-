@@ -8,11 +8,11 @@
                     :key="item.path"
                     :class="{selected: route.path === item.path}"
                     class="tab flex-box">
-                    <el-icon size="20"><component :is="item.icon" /></el-icon>
+                    <el-icon size="12"><component :is="item.icon" /></el-icon>
                     <router-link class="text flex-box" :to="{ path: item.path }">
                         {{ item.name }}
                     </router-link>
-                    <el-icon size="20" class="close"><Close /></el-icon>
+                    <el-icon size="12" class="close" @click="closeTab(item, index)"><Close /></el-icon>
                     
                 </li>
             </ul>
@@ -42,13 +42,39 @@
 <script setup>
 import { computed } from 'vue'
 import { useStore } from 'vuex'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 // 拿到store的实例
 const store = useStore()
 // 当前的路由对象
 const route = useRoute()
-
+const router = useRouter()
 const selectMenu = computed(() => store.state.menu.selectMenu)
+
+//点击关闭tag
+const closeTab = (item, index) => {
+    store.commit('closeMenu',item)
+    // 删除的非当前页tag
+    if (route.path !== item.path) {
+        return
+    }
+    const selectMenuData = selectMenu.value
+    // 删除的最后一项
+    if (index == selectMenuData.length) {
+        // 如果tag只有一个元素
+        if (!selectMenuData.length) {
+            router.push('/')
+        } else {
+            router.push({
+                path: selectMenuData[index - 1].path
+            })
+        }
+    } else {
+        router.push({
+            path: selectMenuData[index].path
+        })
+    }
+
+}
 </script>
 
 <style lang="less" scoped>
