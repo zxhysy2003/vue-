@@ -12,7 +12,8 @@
             <el-form 
                 :model="loginForm" 
                 style="max-width: 600px"
-                class="demo-ruleForm">
+                class="demo-ruleForm"
+                :rules="rules">
                 <el-form-item prop="userName">
                     <el-input v-model="loginForm.userName" placeholder="手机号" :prefix-icon="UserFilled"></el-input>
                 </el-form-item>
@@ -25,7 +26,11 @@
                             <span @click="countdownChange">{{ countdown.validText }}</span>
                         </template>
                     </el-input>
-                    
+                </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" :style="{ width: '100%' }" @click="submitForm">
+                        {{ formType ? '注册账号' : '登录' }}
+                    </el-button>
                 </el-form-item>
             </el-form>
         </el-card>
@@ -33,7 +38,7 @@
 </template>
 
 <script setup>
-import { UserFilled } from '@element-plus/icons-vue';
+import { Lock, UserFilled } from '@element-plus/icons-vue';
 import { ref, reactive } from 'vue';
 const imgUrl = new URL('../../../public/login-head.png', import.meta.url).href
 
@@ -51,6 +56,33 @@ const handleChange = () => {
     formType.value = formType.value ? 0 : 1
 }
 
+// 账号校验规则
+const validateUser = (rule, value, callback) => {
+    // 不能为空
+    if (value == '') {
+        callback(new Error('请输入账号'))
+    } else {
+        const phoneReg = /^1(3[0-9]|4[01456879]|5[0-35-9]|6[2567]|7[0-8]|8[0-9]|9[0-35-9])\d{8}$/ 
+        phoneReg.test(value) ? callback() : callback(new Error('手机号格式不对,请输入正确的手机号'))
+    }
+}
+
+const validatePass = (rule, value, callback) => {
+    if (value == '') {
+        callback(new Error('请输入账号'))
+    } else {
+        // 密码正则
+        const passReg = /^[a-zA-Z0-9_-]{4,16}$/
+        passReg.test(value) ? callback() : callback(new Error('密码格式不对,需要4到16位字符,请确认格式'))
+    }
+}
+
+// 表单校验
+const rules = reactive({
+    userName: [{ validator: validateUser, trigger: 'blur'}],
+    passWord: [{ validator: validatePass, trigger: 'blur'}],
+})
+
 // 发送短信
 const countdown = reactive({
     validText: '获取验证码',
@@ -64,8 +96,7 @@ const countdownChange = () => {
     // 如果已发送不处理
     if (flag) return
     
-    // 密码正则
-    // /^[a-zA-Z0-9_-]{4,16}$/
+    
 
     // 判断手机号是否正确
     // 手机号正则
@@ -91,6 +122,12 @@ const countdownChange = () => {
         }
     }, 1000)
 }
+
+// 表单提交
+const submitForm = () => {
+
+}
+
 </script>
 
 <style lang="less" scoped>
