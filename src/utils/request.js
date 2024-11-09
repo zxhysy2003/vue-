@@ -15,7 +15,7 @@ http.interceptors.request.use(
         // 不需要添加token的api
         const whiteUrl = ['/get/code', '/user/authentication', '/login']
         if (token && !whiteUrl.includes(config.url)) {
-            config.headers['X-token'] = token
+            config.headers['x-token'] = token
         }
         return config;
     },

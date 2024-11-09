@@ -10,6 +10,7 @@
                 <el-link type="primary" @click="handleChange">{{ formType ? '返回登录' : '注册账号' }}</el-link>
             </div>
             <el-form 
+                ref="loginFormRef"
                 :model="loginForm" 
                 style="max-width: 600px"
                 class="demo-ruleForm"
@@ -28,7 +29,7 @@
                     </el-input>
                 </el-form-item>
                 <el-form-item>
-                    <el-button type="primary" :style="{ width: '100%' }" @click="submitForm">
+                    <el-button type="primary" :style="{ width: '100%' }" @click="submitForm(loginFormRef)">
                         {{ formType ? '注册账号' : '登录' }}
                     </el-button>
                 </el-form-item>
@@ -40,7 +41,7 @@
 <script setup>
 import { Lock, UserFilled } from '@element-plus/icons-vue';
 import { ref, reactive } from 'vue';
-import { getCode } from '../../api/index'
+import { getCode, userAuthentication, login } from '../../api/index'
 import { ElMessage } from 'element-plus';
 const imgUrl = new URL('../../../public/login-head.png', import.meta.url).href
 
@@ -98,8 +99,6 @@ const countdownChange = () => {
     // 如果已发送不处理
     if (flag) return
     
-    
-
     // 判断手机号是否正确
     // 手机号正则
     const phoneReg = /^1(3[0-9]|4[01456879]|5[0-35-9]|6[2567]|7[0-8]|8[0-9]|9[0-35-9])\d{8}$/ 
@@ -130,9 +129,39 @@ const countdownChange = () => {
     })
 }
 
-// 表单提交
-const submitForm = () => {
 
+const loginFormRef = ref()
+
+// 表单提交
+const submitForm = async (formEl) => {
+    if (!formEl) return
+    // 手动触发校验
+    await formEl.validate((valid, fields) => {
+        if (valid) {
+            // 注册页面
+            if (formType.value) {
+                userAuthentication(loginForm).then(({ data }) => {
+                    if (data.code === 10000) {
+                        ElMessage.success('注册成功,请登录')
+                        formType.value = 0
+                    }
+                })
+            } else {
+                // 登录页面
+                login(loginForm).then(({ data }) => {
+                    if (data.code === 10000) {
+                        ElMessage.success('登录成功')
+                        console.log(data)
+                        // 将token和用户信息缓存到浏览器
+                        localStorage.setItem('pz_token', data.data.token)
+                        localStorage.setItem('pz_userInfo', JSON.stringify(data.data.userInfo))
+                    }
+                })
+            }
+        } else {
+            console.log('error submit!', fields)
+        }
+    })
 }
 
 </script>
