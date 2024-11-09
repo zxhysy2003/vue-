@@ -40,6 +40,8 @@
 <script setup>
 import { Lock, UserFilled } from '@element-plus/icons-vue';
 import { ref, reactive } from 'vue';
+import { getCode } from '../../api/index'
+import { ElMessage } from 'element-plus';
 const imgUrl = new URL('../../../public/login-head.png', import.meta.url).href
 
 // 表单数据
@@ -121,6 +123,11 @@ const countdownChange = () => {
             countdown.validText = `剩余${countdown.time}秒`
         }
     }, 1000)
+    getCode({ tel: loginForm.userName }).then(({data}) => {
+        if (data.code === 10000) {
+            ElMessage.success('发送成功')
+        }
+    })
 }
 
 // 表单提交
