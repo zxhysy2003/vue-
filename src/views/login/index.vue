@@ -43,6 +43,7 @@ import { Lock, UserFilled } from '@element-plus/icons-vue';
 import { ref, reactive } from 'vue';
 import { getCode, userAuthentication, login } from '../../api/index'
 import { ElMessage } from 'element-plus';
+import { useRouter } from 'vue-router';
 const imgUrl = new URL('../../../public/login-head.png', import.meta.url).href
 
 // 表单数据
@@ -129,7 +130,7 @@ const countdownChange = () => {
     })
 }
 
-
+const router = useRouter()
 const loginFormRef = ref()
 
 // 表单提交
@@ -155,6 +156,7 @@ const submitForm = async (formEl) => {
                         // 将token和用户信息缓存到浏览器
                         localStorage.setItem('pz_token', data.data.token)
                         localStorage.setItem('pz_userInfo', JSON.stringify(data.data.userInfo))
+                        router.push('/')
                     }
                 })
             }
