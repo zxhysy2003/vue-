@@ -1,5 +1,16 @@
 <template>
-    <button @click="dialogFormVisable = true">打开</button>
+    <button @click="open(null)">打开</button>
+    <el-table :data="tableData.list" style="width: 100%">
+        <el-table-column prop="id" label="id" />
+        <el-table-column prop="name" label="昵称" />
+        <el-table-column prop="permissionName" label="菜单权限" width="500px" />
+        <el-table-column label="操作">
+            <template #default="scope">
+                <el-button type="primary" @click="open(scope.row)">编辑</el-button>
+            </template>
+        </el-table-column>
+
+    </el-table>
     <el-dialog
         v-model="dialogFormVisable"
         :before-close="beforeClose"
@@ -11,7 +22,11 @@
             label-width="100px"
             label-position="left"
             :model="form"
+            :rules="rules"
         >
+            <el-form-item v-show="false" prop="id">
+                <el-input v-model="form.id" />
+            </el-form-item>
             <el-form-item label="名称" prop="name">
                 <el-input v-model="form.name" placeholder="请填写权限名称" />
             </el-form-item>
@@ -24,15 +39,22 @@
                     node-key="id"
                     show-checkbox
                     :default-checked-keys="defaultKeys"
+                    :default-expanded-keys="[2]"
                 />
             </el-form-item>
         </el-form>
+        <template #footer>
+            <div class="dialog-footer">
+                <el-button type="primary" @click="confirm(formRef)">确认</el-button>
+            </div>
+        </template>
     </el-dialog>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
-import { userGetMenu } from '../../../api';
+import { ref, reactive, onMounted, nextTick } from 'vue'
+import { userGetMenu, userSetMenu, menuList } from '../../../api';
+import { tr } from 'element-plus/es/locales.mjs';
 
 onMounted(() => {
     // 菜单数据
@@ -40,10 +62,46 @@ onMounted(() => {
         console.log(data, 'group')
         permissionData.value = data.data
     })
+    getListData()
 })
+
+// 列表数据
+const tableData = reactive({
+    list: [],
+    total: 0
+})
+
+// 打开弹窗
+const open = (rowData = {}) => {
+    dialogFormVisable.value = true
+    // 弹窗打开form生成是异步的
+    nextTick(() => {
+        if (rowData) {
+            Object.assign(form, {id: rowData.id, name: rowData.name })
+            treeRef.value.setCheckedKeys(rowData.permission)
+        }
+    })
+}
+
+const paginationData = reactive({
+    pageNum: 1,
+    pageSize: 10
+})
+
+// 请求列表数据
+const getListData = () => {
+    menuList(paginationData).then(({ data }) => {
+        const { list, total } = data.data
+        tableData.list = list
+        tableData.total = total
+    })
+}
+
+const formRef = ref()
 
 // form的数据
 const form = reactive({
+    id: '',
     name: '',
     permissions: ''
 })
@@ -57,11 +115,34 @@ const dialogFormVisable = ref(false)
 // 关闭弹窗的回调
 const beforeClose = () => {
     dialogFormVisable.value = false
+    // 充值表单
+    formRef.value.resetFields()
+    // tree选择重置
+    treeRef.value.setCheckedKeys(defaultKeys)
 }
 
 // 选中权限
 const defaultKeys = [4, 5]
 const treeRef = ref()
+
+const rules = reactive({
+    name: [{ required: true, trigger: 'blur', message: '请输入权限名称' }]
+})
+// 表单提交
+const confirm = async (formEl) => {
+    if (!formEl) return
+    await formEl.validate((valid, fields) => {
+        if (valid) {
+            // 获取到选择的checkbox数据
+            const permissions = JSON.stringify(treeRef.value.getCheckedKeys())
+            userSetMenu({ name: form.name, permissions, id: form.id}).then(({ data }) => {
+                console.log(data, 'data')
+            })
+        } else {
+            console.log('error submit!', fields)
+        }
+    })
+}
 </script>
 
 <style lang="less" scoped>

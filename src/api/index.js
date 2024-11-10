@@ -24,3 +24,13 @@ export const authAdmin = (params) => {
 export const userGetMenu = () => {
     return request.get('/user/getmenu')
 }
+
+// 菜单权限修改
+export const userSetMenu = (data) => {
+    return request.post('/user/setmenu', data)
+}
+
+// 菜单权限列表
+export const menuList = (params) => {
+    return request.get('/menu/list', { params })
+}
