@@ -1,5 +1,9 @@
 <template>
-    <button @click="open(null)">打开</button>
+    <panel-head />
+    <div class="btns">
+        <el-button :icon="Plus" type="primary" @click="open(null)" size="small">新增</el-button>
+    </div>
+    
     <el-table :data="tableData.list" style="width: 100%">
         <el-table-column prop="id" label="id" />
         <el-table-column prop="name" label="昵称" />
@@ -11,6 +15,19 @@
         </el-table-column>
 
     </el-table>
+    <div class="pagination-info">
+        <el-pagination
+            v-model:current-page="paginationData.pageNum"
+            :page-size="paginationData.pageSize"
+            :background="false"
+            size="small"
+            layout="total, prev, pager, next"
+            :total="tableData.total"
+            @size-change="handleSizeChange"
+            @current-change="handleCurrentChange"
+        />
+    </div>
+    
     <el-dialog
         v-model="dialogFormVisable"
         :before-close="beforeClose"
@@ -54,7 +71,8 @@
 <script setup>
 import { ref, reactive, onMounted, nextTick } from 'vue'
 import { userGetMenu, userSetMenu, menuList } from '../../../api';
-import { tr } from 'element-plus/es/locales.mjs';
+import { Plus } from '@element-plus/icons-vue';
+
 
 onMounted(() => {
     // 菜单数据
@@ -87,6 +105,15 @@ const paginationData = reactive({
     pageNum: 1,
     pageSize: 10
 })
+
+const handleSizeChange = (val) => {
+    paginationData.pageSize = val
+    getListData()
+}
+const handleCurrentChange = (val) => {
+    paginationData.pageNum = val
+    getListData()
+}
 
 // 请求列表数据
 const getListData = () => {
@@ -136,7 +163,9 @@ const confirm = async (formEl) => {
             // 获取到选择的checkbox数据
             const permissions = JSON.stringify(treeRef.value.getCheckedKeys())
             userSetMenu({ name: form.name, permissions, id: form.id}).then(({ data }) => {
-                console.log(data, 'data')
+                beforeClose()
+                getListData()
+
             })
         } else {
             console.log('error submit!', fields)
@@ -146,5 +175,8 @@ const confirm = async (formEl) => {
 </script>
 
 <style lang="less" scoped>
-
+.btns {
+    padding: 10px 0 10px 10px;
+    background-color: #fff;
+}
 </style>

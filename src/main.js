@@ -3,6 +3,7 @@ import './style.css'
 import App from './App.vue'
 import router from './router'
 import store from './store'
+import PanelHead from './components/panelHead.vue'
 
 router.beforeEach((to, from) => {
   const token = localStorage.getItem('pz_token')
@@ -22,6 +23,7 @@ for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
   app.component(key, component)
 }
 
+app.component('PanelHead', PanelHead)
 
 // 路由挂载
 app.use(router)
