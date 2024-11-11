@@ -34,3 +34,8 @@ export const userSetMenu = (data) => {
 export const menuList = (params) => {
     return request.get('/menu/list', { params })
 }
+
+// 菜单权限下拉
+export const menuSelectList = () => {
+    return request.get('/menu/selectlist')
+}
