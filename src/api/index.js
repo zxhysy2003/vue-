@@ -39,3 +39,8 @@ export const menuList = (params) => {
 export const menuSelectList = () => {
     return request.get('/menu/selectlist')
 }
+
+// 用户数据修改
+export const updateUser = (data) => {
+    return request.post('/update/user', data)
+}
