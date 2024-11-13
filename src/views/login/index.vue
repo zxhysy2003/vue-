@@ -40,10 +40,12 @@
 
 <script setup>
 import { Lock, UserFilled } from '@element-plus/icons-vue';
-import { ref, reactive } from 'vue';
-import { getCode, userAuthentication, login } from '../../api/index'
-import { ElMessage } from 'element-plus';
+import { ref, reactive, computed } from 'vue';
+import { getCode, userAuthentication, login, menuPermissions } from '../../api/index'
 import { useRouter } from 'vue-router';
+import { useStore} from "vuex";
+import menu from "../../store/menu.js";
+
 const imgUrl = new URL('../../../public/login-head.png', import.meta.url).href
 
 // 表单数据
@@ -63,7 +65,7 @@ const handleChange = () => {
 // 账号校验规则
 const validateUser = (rule, value, callback) => {
     // 不能为空
-    if (value == '') {
+    if (value === '') {
         callback(new Error('请输入账号'))
     } else {
         const phoneReg = /^1(3[0-9]|4[01456879]|5[0-35-9]|6[2567]|7[0-8]|8[0-9]|9[0-35-9])\d{8}$/ 
@@ -72,7 +74,7 @@ const validateUser = (rule, value, callback) => {
 }
 
 const validatePass = (rule, value, callback) => {
-    if (value == '') {
+    if (value === '') {
         callback(new Error('请输入账号'))
     } else {
         // 密码正则
@@ -132,7 +134,9 @@ const countdownChange = () => {
 
 const router = useRouter()
 const loginFormRef = ref()
+const store = useStore()
 
+const routerList = computed(() => store.state.menu.routerList);
 // 表单提交
 const submitForm = async (formEl) => {
     if (!formEl) return
@@ -156,7 +160,12 @@ const submitForm = async (formEl) => {
                         // 将token和用户信息缓存到浏览器
                         localStorage.setItem('pz_token', data.data.token)
                         localStorage.setItem('pz_userInfo', JSON.stringify(data.data.userInfo))
-                        router.push('/')
+                        menuPermissions().then(({data}) => {
+                            store.commit('dynamicMenu', data.data)
+                            console.log(routerList, 'routerList')
+                            // router.push('/')
+                        })
+
                     }
                 })
             }
