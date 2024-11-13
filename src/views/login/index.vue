@@ -40,7 +40,7 @@
 
 <script setup>
 import { Lock, UserFilled } from '@element-plus/icons-vue';
-import { ref, reactive, computed } from 'vue';
+import { ref, reactive, computed, toRaw } from 'vue';
 import { getCode, userAuthentication, login, menuPermissions } from '../../api/index'
 import { useRouter } from 'vue-router';
 import { useStore} from "vuex";
@@ -163,7 +163,10 @@ const submitForm = async (formEl) => {
                         menuPermissions().then(({data}) => {
                             store.commit('dynamicMenu', data.data)
                             console.log(routerList, 'routerList')
-                            // router.push('/')
+                            toRaw(routerList.value).forEach((item, index) => {
+                                router.addRoute('main', item)
+                            })
+                            router.push('/')
                         })
 
                     }
