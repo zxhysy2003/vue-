@@ -49,3 +49,8 @@ export const updateUser = (data) => {
 export const menuPermissions = () => {
     return request.get('/menu/permissions')
 }
+
+// 陪护师创建
+// export const updateUser = (data) => {
+//     return request.post('/companion', data)
+// }
