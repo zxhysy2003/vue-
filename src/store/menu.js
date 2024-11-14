@@ -4,6 +4,7 @@ const state = localData ? localData.menu : {
     isCollapse: false,
     selectMenu: [],
     routerList: [],
+    menuActive: '1-1'
 };
 
 const mutations = {
@@ -41,6 +42,9 @@ const mutations = {
         routerSet(payload)
         // 拿到完整的路由数据
         state.routerList = payload
+    },
+    updateMenuActive (state, payload) {
+        state.menuActive = payload
     }
 }
 
