@@ -22,7 +22,7 @@
                 <el-input v-model="form.name" placeholder="请输入昵称"/>
             </el-form-item>
             <el-form-item label="头像" prop="avatar">
-                <el-button v-if="!form.avatar" type="primary">点击上传</el-button>
+                <el-button v-if="!form.avatar" type="primary" @click="dialogImgVisible = true">点击上传</el-button>
                 <el-image
                     v-else
                     :src="form.avatar"
@@ -43,8 +43,8 @@
             </el-form-item>
             <el-form-item label="是否生效" prop="active">
                 <el-radio-group v-model="form.active">
-                    <el-radio value="0">失效</el-radio>
-                    <el-radio value="1">生效</el-radio>
+                    <el-radio :value="0">失效</el-radio>
+                    <el-radio :value="1">生效</el-radio>
                 </el-radio-group>
             </el-form-item>
         </el-form>
@@ -54,15 +54,58 @@
             </div>
         </template>
     </el-dialog>
+    <el-dialog
+        v-model="dialogImgVisible"
+        :before-close="beforeClose"
+        title="选择图片"
+        width="600"
+    >
+        <div class="image-list">
+            <div v-for="(item, index) in fileList"
+                 :key="item.name"
+                 class="img-box"
+                 @click="selectIndex = index">
+            >
+                <div v-if="selectIndex === index" class="select">
+                    <el-icon color="#fff"><Check /></el-icon>
+                </div>
+                <el-image
+                    style="width: 148px; height: 148px"
+                    :src="item.url"
+                />
+            </div>
+        </div>
+        <template #footer>
+            <div class="dialog-footer">
+                <el-button @click="dialogImgVisible = false">取消</el-button>
+                <el-button type="primary" @click="confirmImage">确认</el-button>
+            </div>
+        </template>
+    </el-dialog>
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
-import {Plus} from "@element-plus/icons-vue";
+import { ref, reactive, onMounted } from 'vue'
+import { Plus } from "@element-plus/icons-vue";
+import { photoList, companion } from '../../../api'
+import {ElMessage} from "element-plus";
+
+// 选择头像弹窗
+const dialogImgVisible = ref(false)
+let fileList = reactive([])
+const selectIndex = ref(0)
+
+
+onMounted(() => {
+    photoList().then(({ data }) => {
+        fileList = data.data
+    })
+})
 
 const dialogFormVisible = ref(false)
 const beforeClose = () => {
-
+    dialogFormVisible.value = false
+    formRef.value.resetFields()
 }
 
 const formRef = ref()
@@ -76,23 +119,41 @@ const form = reactive({
     sex: ''
 })
 const rules = reactive({
-
+    name: [{ required: true, trigger: 'blur', message: '请填写昵称' }],
+    avatar: [{ required: true, message: '请选择头像' }],
+    sex: [{ required: true, trigger: 'change', message: '请选择性别' }],
+    mobile: [{ required: true, trigger: 'blur', message: '请填写手机号' }]
 })
 
 const confirm = async (formEl) => {
     if (!formEl) return
     await formEl.validate((valid, fields) => {
         if (valid) {
-
+            companion(form).then(({ data }) => {
+                if (data.code === 10000) {
+                    ElMessage.success('成功')
+                    beforeClose()
+                } else {
+                    ElMessage.error(data.message)
+                }
+            })
         } else {
             console.log('error submit!', fields)
         }
     })
 }
 
+const confirmImage = () => {
+    form.avatar = fileList[selectIndex.value].url
+    dialogImgVisible.value = false
+}
+
 const open = () => {
     dialogFormVisible.value = true
 }
+
+
+
 </script>
 
 <style lang="less" scoped>

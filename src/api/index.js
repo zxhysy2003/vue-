@@ -51,6 +51,11 @@ export const menuPermissions = () => {
 }
 
 // 陪护师创建
-// export const updateUser = (data) => {
-//     return request.post('/companion', data)
-// }
+export const companion = (data) => {
+    return request.post('/companion', data)
+}
+
+// 陪护师头像列表
+export const photoList = () => {
+    return request.get('/photo/list')
+}
