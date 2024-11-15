@@ -1,6 +1,22 @@
 <template>
+    <panel-head :route="route" />
     <div class="btns">
         <el-button :icon="Plus" type="primary" @click="open(null)" size="small">新增</el-button>
+        <el-popconfirm
+            confirm-button-text="是"
+            cancel-button-text="否"
+            :icon="InfoFilled"
+            icon-color="#626AEF"
+            title="是否确认删除"
+            @confirm="confirmEvent"
+            @cancel="cancelEvent"
+        >
+            <template #reference>
+                <el-button :icon="Delete" type="danger" size="small" >删除</el-button>
+<!--                <el-button type="info"-->
+
+            </template>
+        </el-popconfirm>
     </div>
     <el-table :data="tableData.list" style="width: 100%" @selection-change="handleSelectionChange">
         <el-table-column type="selection" width="55" />
@@ -137,11 +153,15 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
-import { Plus } from "@element-plus/icons-vue";
-import { photoList, companion, companionList } from '../../../api'
+import { ref, reactive, onMounted, nextTick } from 'vue'
+import {Delete, InfoFilled, Plus} from "@element-plus/icons-vue";
+import { photoList, companion, companionList, deleteCompanion } from '../../../api'
 import { ElMessage } from "element-plus";
+import dayjs from "dayjs";
+import PanelHead from "../../../components/panelHead.vue";
+import { useRoute } from "vue-router";
 
+const route = useRoute();
 // 选择头像弹窗
 const dialogImgVisible = ref(false)
 let fileList = reactive([])
@@ -170,6 +190,9 @@ const tableData = reactive({
 const getListData = () => {
     companionList(paginationData).then(({ data }) => {
         const { list, total } = data.data
+        list.forEach(item => {
+            item.create_time = dayjs(item.create_time).format('YYYY-MM-DD')
+        })
         tableData.list = list
         tableData.total = total
     })
@@ -206,6 +229,7 @@ const confirm = async (formEl) => {
                 if (data.code === 10000) {
                     ElMessage.success('成功')
                     beforeClose()
+                    getListData()
                 } else {
                     ElMessage.error(data.message)
                 }
@@ -221,8 +245,14 @@ const confirmImage = () => {
     dialogImgVisible.value = false
 }
 
-const open = () => {
+const open = (rowData = {}) => {
     dialogFormVisible.value = true
+    nextTick(() => {
+        // 如果是编辑
+        if (rowData) {
+            Object.assign(form, rowData)
+        }
+    })
 }
 
 const handleSizeChange = (val) => {
@@ -235,8 +265,21 @@ const handleCurrentChange = (val) => {
     getListData()
 }
 
-const handleSelectionChange = () => {
+const selectTableData = ref([])
+const handleSelectionChange = (val) => {
+    selectTableData.value = val.map(item => ({ id: item.id }))
+}
 
+const confirmEvent = () => {
+    // 没有选择数据
+    if (!selectTableData.value.length) {
+        return ElMessage.warning('请选择至少一项数据')
+    }
+    deleteCompanion({ id: selectTableData.value}).then(({ data }) => {
+        if (data.code === 10000) {
+            getListData()
+        }
+    })
 }
 
 </script>
