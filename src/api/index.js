@@ -59,3 +59,8 @@ export const companion = (data) => {
 export const photoList = () => {
     return request.get('/photo/list')
 }
+
+// 陪护师列表
+export const companionList = (params) => {
+    return request.get('/companion/list', { params })
+}

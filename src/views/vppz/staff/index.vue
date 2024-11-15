@@ -2,6 +2,59 @@
     <div class="btns">
         <el-button :icon="Plus" type="primary" @click="open(null)" size="small">新增</el-button>
     </div>
+    <el-table :data="tableData.list" style="width: 100%" @selection-change="handleSelectionChange">
+        <el-table-column type="selection" width="55" />
+        <el-table-column prop="id" label="id" />
+        <el-table-column prop="name" label="昵称" />
+        <el-table-column label="头像">
+            <template #default="scope">
+                <el-image
+                    style="width: 50px;height: 50px"
+                    :src="scope.row.avatar"
+                />
+            </template>
+        </el-table-column>
+        <el-table-column prop="sex" label="性别" >
+            <template #default="scope">
+                {{ scope.row.sex === '1' ? '男' : '女' }}
+            </template>
+        </el-table-column>
+        <el-table-column prop="mobile" label="手机号" />
+        <el-table-column prop="active" label="状态" >
+            <template #default="scope">
+                <el-tag :type="scope.row.active ? 'success' : 'danger' ">
+                    {{ scope.row.active ? '正常' : '失效' }}
+                </el-tag>
+            </template>
+        </el-table-column>
+        <el-table-column label="创建时间">
+            <template #default="scope">
+                <div class="flex-box">
+                    <el-icon><Clock /></el-icon>
+                    <span style="margin-left: 10px">{{ scope.row.create_time }}</span>
+                </div>
+            </template>
+        </el-table-column>
+        <el-table-column label="操作">
+            <template #default="scope">
+                <el-button type="primary" @click="open(scope.row)">编辑</el-button>
+            </template>
+        </el-table-column>
+    </el-table>
+
+    <div class="pagination-info">
+        <el-pagination
+            v-model:current-page="paginationData.pageNum"
+            :page-size="paginationData.pageSize"
+            :background="false"
+            size="small"
+            layout="total, prev, pager, next"
+            :total="tableData.total"
+            @size-change="handleSizeChange"
+            @current-change="handleCurrentChange"
+        />
+    </div>
+
     <el-dialog
         v-model="dialogFormVisible"
         :before-close="beforeClose"
@@ -56,7 +109,6 @@
     </el-dialog>
     <el-dialog
         v-model="dialogImgVisible"
-        :before-close="beforeClose"
         title="选择图片"
         width="600"
     >
@@ -87,20 +139,41 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { Plus } from "@element-plus/icons-vue";
-import { photoList, companion } from '../../../api'
-import {ElMessage} from "element-plus";
+import { photoList, companion, companionList } from '../../../api'
+import { ElMessage } from "element-plus";
 
 // 选择头像弹窗
 const dialogImgVisible = ref(false)
 let fileList = reactive([])
 const selectIndex = ref(0)
 
-
 onMounted(() => {
     photoList().then(({ data }) => {
         fileList = data.data
     })
+    getListData()
 })
+
+
+// 分页数据
+const paginationData = reactive({
+    pageNum: 1,
+    pageSize: 10
+})
+
+// 列表数据
+const tableData = reactive({
+    list: [],
+    total: 0
+})
+
+const getListData = () => {
+    companionList(paginationData).then(({ data }) => {
+        const { list, total } = data.data
+        tableData.list = list
+        tableData.total = total
+    })
+}
 
 const dialogFormVisible = ref(false)
 const beforeClose = () => {
@@ -152,7 +225,19 @@ const open = () => {
     dialogFormVisible.value = true
 }
 
+const handleSizeChange = (val) => {
+    paginationData.pageSize = val
+    getListData()
 
+}
+const handleCurrentChange = (val) => {
+    paginationData.pageNum = val
+    getListData()
+}
+
+const handleSelectionChange = () => {
+
+}
 
 </script>
 
